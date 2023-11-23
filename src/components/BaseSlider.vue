@@ -1,9 +1,25 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useImagePath } from '@/utils/useImagePath.js'
 import { useWindowSize } from '@vueuse/core'
 
 const sliderList = [
+    {
+        name: 'Eren Yeager',
+        japaneseName: 'エレン・イェーガー',
+        height: '170cm',
+        weight: '63kg',
+        birth: '835-3-30',
+        image: 'eren.png'
+    },
+    {
+        name: 'Mikasa Ackerman',
+        japaneseName: 'ミカサ・アッカーマン',
+        height: '160cm',
+        weight: '50kg',
+        birth: '835-2-10',
+        image: 'mikasa.png'
+    },
     {
         name: 'Connie Springer',
         japaneseName: 'コニー・スプリンガー',
@@ -29,38 +45,13 @@ const sliderList = [
         image: 'levi.png'
     },
     {
-        name: 'Armin Arlert',
-        japaneseName: 'アルミン・アルレルト',
-        height: '163cm',
-        weight: '55kg',
-        birth: '835-11-3',
-        image: 'armin.png'
-    },
-    {
-        name: 'Eren Yeager',
-        japaneseName: 'エレン・イェーガー',
-        height: '170cm',
-        weight: '63kg',
-        birth: '835-3-30',
-        image: 'eren.png'
-    },
-    {
-        name: 'Mikasa Ackerman',
-        japaneseName: 'ミカサ・アッカーマン',
-        height: '160cm',
-        weight: '50kg',
-        birth: '835-2-10',
-        image: 'mikasa.png'
-    },
-    {
         name: 'Erwin Smith',
         japaneseName: 'エルヴィン・スミス',
         height: '188cm',
         weight: '92kg',
         birth: '10-14',
         image: 'erwin.png'
-    },
-   
+    },  
     {
         name: 'Sasha Blouse',
         japaneseName: 'サシャ・ブラウス',
@@ -77,30 +68,30 @@ const sliderList = [
         birth: '835-4-7',
         image: 'jean.png'
     },
+    {
+        name: 'Armin Arlert',
+        japaneseName: 'アルミン・アルレルト',
+        height: '163cm',
+        weight: '55kg',
+        birth: '835-11-3',
+        image: 'armin.png'
+    },
 ]
-const activeIndex = ref(7)
+const activeIndex = ref(3)
 const slideItemWidth = ref(0)
 const offset = ref(0)
 const slideList = ref('')
+const slideItem = ref('')
 const isFlip = ref(false)
+const pre = ref('')
+const active = ref('')
 const { width: screenWidth } = useWindowSize()
-
-const getSlideItemWidth = () => {
-    const sliderItem = document.querySelector('.slider-item')
-    if (sliderItem) {
-      const styles = window.getComputedStyle(sliderItem);
-      const marginLeft = parseFloat(styles.getPropertyValue('margin-left'))
-      const marginRight = parseFloat(styles.getPropertyValue('margin-right'))
-      slideItemWidth.value = sliderItem.clientWidth + marginLeft + marginRight
-    }
-}
 
 const cloneSlide = computed(() => {
     const prepend = sliderList.slice(-3)
     const append = sliderList.slice(0,3)
     return [...prepend,...sliderList,...append]
 })
-
 const activeContent = computed(() => {
     const activeSlide =  cloneSlide.value[activeIndex.value]
     const activeData = filterData(activeSlide)
@@ -111,12 +102,15 @@ const preContent = computed(() => {
     const preData = filterData(preSlide)
     return preData
 })
-const nextContent = computed(() => {
-    const nextSlide = cloneSlide.value[activeIndex.value + 1]
-    const nextData = filterData(nextSlide)
-    return nextData
-})
 
+const calculateOffset = () => {
+  offset.value = -(
+    slideItemWidth.value -
+    (slideList.value.offsetWidth - slideItemWidth.value) / 2 +
+    slideItemWidth.value * (activeIndex.value - 1)
+  )
+  return slideList.value.style.transform = `translateX(${ offset.value }px)`
+}
 const filterData = (index) => {
     const data = Object.keys(index)
             .filter(key => key !== 'image')
@@ -126,15 +120,38 @@ const filterData = (index) => {
             },{})
     return data
 }
-const moveSlide = (direction) => {
-    activeIndex.value += direction > 0 ? 1 : -1
-    if (activeIndex.value > cloneSlide.value.length) {
-      activeIndex.value = 7
+const getSlideItemWidth = () => {
+    const sliderItem = document.querySelector('.slider-item')
+    if (sliderItem) {
+      const styles = window.getComputedStyle(sliderItem);
+      const marginLeft = parseFloat(styles.getPropertyValue('margin-left'))
+      const marginRight = parseFloat(styles.getPropertyValue('margin-right'))
+      slideItemWidth.value = sliderItem.clientWidth + marginLeft + marginRight
     }
-    offset.value += -direction * slideItemWidth.value 
-    isFlip.value = true
 }
 
+const init = () => {
+    getSlideItemWidth()
+    calculateOffset()
+}
+const moveSlide = (direction) => {
+    activeIndex.value += direction > 0 ? 1 : -1
+    offset.value += -direction * slideItemWidth.value
+    isFlip.value = true
+    slideList.value.style.transform = `translateX(${ offset.value }px)`
+    slideList.value.style.transition = 'all 0.5s ease-in-out'
+}
+const updateSliderPosition = () => {
+    slideList.value.style.transition = 'none'
+    if (activeIndex.value > sliderList.length + 2) {
+        activeIndex.value = 3
+    }
+    if (activeIndex.value < 3) {
+        activeIndex.value = sliderList.length + 2
+    }
+    isFlip.value = false
+    calculateOffset()
+}
 const setRotateDeg = (index) => {
     const num = 1
     const deg = (activeIndex.value + num) * 2
@@ -145,14 +162,15 @@ const setRotateDeg = (index) => {
         return `translateY(-10%) scale(1.3)`;
     }
 }
+
 watch(screenWidth, () => {
     if(screenWidth.value){
-        getSlideItemWidth()
+        init()
     }
 })
 
 onMounted(() => {
-    getSlideItemWidth()
+    init()
 })
 </script>
 <template>
@@ -161,14 +179,15 @@ onMounted(() => {
             <span>{{ activeContent.name }}</span>
             <span>{{ activeContent.japaneseName }}</span>
         </h3>
-        <ul class="slider-list" :style="{transform: `translateX(${offset}px)`}">
+        <ul class="slider-list" ref="slideList" @transitionend="updateSliderPosition">
             <li 
             v-for="(slideItem,slideIndex) in cloneSlide" 
             :key="slideIndex"
             class="slider-item"
-            :class="{ active: slideIndex === activeIndex }"
-            :style="{ transform: setRotateDeg(slideIndex) }"
+            :class="{ active: slideIndex === activeIndex ||  slideIndex === activeIndex + 9 ||  slideIndex === activeIndex - 9 }"
+            ref="slideItem"
             >
+            <!-- :style="{ transform: setRotateDeg(slideIndex) }" -->
                 <img 
                 :src="useImagePath(slideItem.image)" 
                 :alt="slideItem.name"
@@ -177,12 +196,12 @@ onMounted(() => {
             </li>
         </ul>
         <div class="slider-content" :class="{show: isFlip}">
-            <div class="pre" >
+            <div class="pre" ref="pre">
                 <span>birth | {{ preContent.birth }}</span>
                 <span>height | {{ preContent.height }}</span>
                 <span>weight | {{ preContent.weight }}</span>
             </div>
-            <div class="active">
+            <div class="active" ref="active">
                 <span>birth | {{ activeContent.birth }}</span>
                 <span>height | {{ activeContent.height }}</span>
                 <span>weight | {{ activeContent.weight }}</span>
@@ -217,7 +236,6 @@ onMounted(() => {
         }
         &-list{
             display: flex;
-            justify-content: center;
             padding:10% 0 0;
             margin: 10% 0 0;
             list-style: none;
@@ -254,6 +272,18 @@ onMounted(() => {
             span{
                 margin: 0 15px;
             }
+            &.show{
+                .pre{
+                    top: 100px;
+                    opacity: 0;
+                    transform: rotateX(90deg);
+                }
+                .active{
+                  top: 0;
+                  opacity: 1;
+                  transform: rotateX(0deg);
+                }
+            }
             .pre{
                 position: absolute;
                 top: 0;
@@ -268,19 +298,6 @@ onMounted(() => {
                 transition: all .8s ease-in;
                 transform: rotateX(90deg);
             }
-            &.show{
-                .pre{
-                    top: 100px;
-                    opacity: 0;
-                    transform: rotateX(90deg);
-                }
-                .active{
-                    top: 0;
-                    opacity: 1;
-                    transform: rotateX(0deg);
-                }
-            }
-            
         }
         &-btns{
             position: absolute;
@@ -294,7 +311,7 @@ onMounted(() => {
 
             .next-btn,
             .prev-btn{
-                position: relative;
+                position: relative; 
                 width: 52px;
                 height: 72px;
                 border: none;
