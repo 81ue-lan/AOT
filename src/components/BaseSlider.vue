@@ -103,16 +103,6 @@ const preContent = computed(() => {
     return preData
 })
 
-//阻擋連續點擊
-const setTime = () => {
-  timer.value = setTimeout(() => {
-    clickWait.value = false
-  }, 500)
-}
-const stopTime = () =>  {
-  clearInterval(timer.value)
-}
-
 const calculateOffset = () => {
   offset.value = -(
     slideItemWidth.value -
@@ -149,9 +139,11 @@ const moveSlide = (direction) => {
         return
     }
     stopTime()
+    stopAutoPlay()
     clickWait.value = true
     activeIndex.value += direction > 0 ? 1 : -1
     setTime()
+    startAutoPlay()
     offset.value += -direction * slideItemWidth.value
     isUpdate.value = true
 
@@ -172,12 +164,31 @@ const updateSliderPosition = () => {
     calculateOffset()
 }
 
+let autoPlay = {}
+const startAutoPlay = () => {
+  autoPlay = setInterval(() => {
+    moveSlide(1)
+  }, 2300)
+}
+const stopAutoPlay = () => {
+  clearInterval(autoPlay)
+}
+
+//阻擋連續點擊
+const setTime = () => {
+  timer.value = setTimeout(() => {
+    clickWait.value = false
+  }, 500)
+}
+const stopTime = () =>  {
+  clearInterval(timer.value)
+}
 // 文字動畫
 const text1 = ref(null);
 const text2 = ref(null);
 
 const morphTime = 1
-const cooldownTime = 0.25
+const cooldownTime = 0.3
 let morph = 0
 let cooldown = cooldownTime
 let time = new Date()
@@ -204,7 +215,6 @@ const setMorph = (fraction) => {
 }
 const doCooldown = () => {
     morph = 0;
-
     text2.value.style.filter = ""
     text2.value.style.opacity = "100%"
     text1.value.style.filter = ""
@@ -213,7 +223,7 @@ const doCooldown = () => {
 const animate = () => {
     requestAnimationFrame(animate)
     let newTime = new Date();
-    let dt = (newTime - time) / 1500;
+    let dt = (newTime - time) / 3500;
     time = newTime;
 
     cooldown -= dt;
@@ -235,6 +245,7 @@ onMounted(() => {
     text1.value = document.querySelector("#text1")
     text2.value = document.querySelector("#text2")
     animate()
+    startAutoPlay()
 })
 </script>
 <template>
@@ -276,16 +287,9 @@ onMounted(() => {
             </li>
         </ul>
         <div class="slider-content">
-            <div class="pre" ref="pre">
-                <span>birth | {{ preContent.birth }}</span>
-                <span>height | {{ preContent.height }}</span>
-                <span>weight | {{ preContent.weight }}</span>
-            </div>
-            <div class="active" ref="active">
-                <span>birth | {{ activeContent.birth }}</span>
-                <span>height | {{ activeContent.height }}</span>
-                <span>weight | {{ activeContent.weight }}</span>
-            </div>
+            <span>birth | {{ activeContent.birth }}</span>
+            <span>height | {{ activeContent.height }}</span>
+            <span>weight | {{ activeContent.weight }}</span>
         </div>
         <div class="slider-btns">
             <button class="prev-btn" @click="moveSlide(1)"></button>
@@ -322,7 +326,7 @@ onMounted(() => {
         &-list{
             display: flex;
             padding:10% 0 0;
-            margin: 10% 0 0;
+            margin: 1.5% 0 0;
             list-style: none;
         }
         &-item{
@@ -349,37 +353,9 @@ onMounted(() => {
             font-size: 24px;
             text-align: center;
             color: #fff;
-            transform-style: preserve-3d;
-            transform-origin: 0%, 0%;
             
             span{
                 margin: 0 15px;
-            }
-            &.show{
-                .pre{
-                    top: 100px;
-                    opacity: 0;
-                    transform: rotateX(90deg);
-                }
-                .active{
-                  top: 0;
-                  opacity: 1;
-                  transform: rotateX(0deg);
-                }
-            }
-            .pre{
-                position: absolute;
-                top: 0;
-                opacity: 1;
-                transition: all .8s ease-in;
-                transform: rotateX(0deg);
-            }
-            .active{
-                position: absolute;
-                top: -20px;
-                opacity: 0;
-                transition: all .8s ease-in;    
-                transform: rotateX(90deg);
             }
         }
         &-btns{
