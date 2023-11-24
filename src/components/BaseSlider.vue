@@ -149,7 +149,7 @@ const moveSlide = (direction) => {
 
     animate()
     slideList.value.style.transform = `translateX(${ offset.value }px)`
-    slideList.value.style.transition = 'all 0.5s ease-in-out'
+    slideList.value.style.transition = 'all .8s ease-in-out'
 }
 const updateSliderPosition = () => {
     slideList.value.style.transition = 'none'
@@ -163,12 +163,11 @@ const updateSliderPosition = () => {
     isUpdate.value = false
     calculateOffset()
 }
-
 let autoPlay = {}
 const startAutoPlay = () => {
   autoPlay = setInterval(() => {
     moveSlide(1)
-  }, 2300)
+  }, 2500)
 }
 const stopAutoPlay = () => {
   clearInterval(autoPlay)
@@ -178,7 +177,7 @@ const stopAutoPlay = () => {
 const setTime = () => {
   timer.value = setTimeout(() => {
     clickWait.value = false
-  }, 500)
+  }, 1000)
 }
 const stopTime = () =>  {
   clearInterval(timer.value)
@@ -270,7 +269,13 @@ onMounted(() => {
                 </filter>
             </defs>
         </svg>
-        <ul class="slider-list" ref="slideList" @transitionend="updateSliderPosition">
+        <ul 
+         class="slider-list" 
+         ref="slideList"
+         @transitionend="updateSliderPosition"
+         @mouseenter="stopAutoPlay"
+         @mouseleave="startAutoPlay"
+         >
             <li 
             v-for="(slideItem,slideIndex) in cloneSlide" 
             :key="slideIndex"
@@ -278,7 +283,6 @@ onMounted(() => {
             :class="{ active: slideIndex === activeIndex ||  slideIndex === activeIndex + 9 ||  slideIndex === activeIndex - 9 }"
             ref="slideItem"
             >
-            <!-- :style="{ transform: setRotateDeg(slideIndex) }" -->
                 <img 
                 :src="useImagePath(slideItem.image)" 
                 :alt="slideItem.name"
