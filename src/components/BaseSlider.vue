@@ -163,6 +163,7 @@ const updateSliderPosition = () => {
     isUpdate.value = false
     calculateOffset()
 }
+
 let autoPlay = {}
 const startAutoPlay = () => {
   autoPlay = setInterval(() => {
@@ -182,6 +183,7 @@ const setTime = () => {
 const stopTime = () =>  {
   clearInterval(timer.value)
 }
+
 // 文字動畫
 const text1 = ref(null);
 const text2 = ref(null);
@@ -227,7 +229,7 @@ const animate = () => {
 
     cooldown -= dt;
       if (cooldown <= 0 && isUpdate.value) {
-            doMorph()
+        doMorph()
       } else if(!isUpdate.value){
         doCooldown()
       }
@@ -281,7 +283,6 @@ onMounted(() => {
             :key="slideIndex"
             class="slider-item"
             :class="{ active: slideIndex === activeIndex ||  slideIndex === activeIndex + 9 ||  slideIndex === activeIndex - 9 }"
-            ref="slideItem"
             >
                 <img 
                 :src="useImagePath(slideItem.image)" 
@@ -330,7 +331,6 @@ onMounted(() => {
         &-list{
             display: flex;
             padding:10% 0 0;
-            margin: 1.5% 0 0;
             list-style: none;
         }
         &-item{
@@ -340,9 +340,12 @@ onMounted(() => {
             margin: 0 5%;
             opacity: .5;
             transform-origin: bottom center;
+            transition: all 1s ease;
             &.active{
-                transform: translateY(-10%) scale(1.3);
                 opacity: 1;
+                transform: scale(1.3);
+                transition: all 1s ease;
+                transition-delay: .2s;
             }
             
             img{
@@ -352,7 +355,6 @@ onMounted(() => {
         }
         &-content{
             position: relative;
-            margin: -40px 0 20px;
             height: 40px;
             font-size: 24px;
             text-align: center;
