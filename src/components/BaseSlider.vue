@@ -80,6 +80,7 @@ const sliderList = [
 const activeIndex = ref(3)
 const slideItemWidth = ref(0)
 const offset = ref(0)
+const offsetY = ref(0)
 const slideList = ref('')
 const slideItem = ref('')
 const isUpdate = ref(false)
@@ -111,6 +112,7 @@ const calculateOffset = () => {
   )
   return slideList.value.style.transform = `translateX(${ offset.value }px)`
 }
+
 const filterData = (index) => {
     const data = Object.keys(index)
             .filter(key => key !== 'image')
@@ -148,6 +150,8 @@ const moveSlide = (direction) => {
     isUpdate.value = true
 
     animate()
+    
+    // slideContent.value.style.transform = `translateY(${ offset.value }px)`
     slideList.value.style.transform = `translateX(${ offset.value }px)`
     slideList.value.style.transition = 'all .8s ease-in-out'
 }
@@ -289,13 +293,27 @@ onMounted(() => {
                 :alt="slideItem.name"
                 draggable="false"
                 >
+                <div class="slider-content-list"
+                v-show="slideIndex === activeIndex"
+                >
+                    <span>birth | {{ slideItem.birth }}</span>
+                    <span>height | {{ slideItem.height }}</span>
+                    <span>weight | {{ slideItem.weight }}</span>
+                </div>
             </li>
         </ul>
-        <div class="slider-content">
-            <span>birth | {{ activeContent.birth }}</span>
-            <span>height | {{ activeContent.height }}</span>
-            <span>weight | {{ activeContent.weight }}</span>
-        </div>
+        <!-- <ul class="slider-content-list">
+            <li 
+            v-for="(content,contentIndex) in cloneSlide"
+            :key="contentIndex"
+            ref="slideContent"
+            class="slider-content-item"
+            >
+                <span>birth | {{ content.birth }}</span>
+                <span>height | {{ content.height }}</span>
+                <span>weight | {{ content.weight }}</span>
+            </li>
+        </ul> -->
         <div class="slider-btns">
             <button class="prev-btn" @click="moveSlide(1)"></button>
             <button class="next-btn" @click="moveSlide(-1)"></button>
@@ -353,13 +371,17 @@ onMounted(() => {
                 vertical-align: middle;
             }
         }
-        &-content{
+        &-content-list{
             position: relative;
-            height: 40px;
-            font-size: 24px;
+            // height: 40px;
+            font-size: 1.5vw;
             text-align: center;
             color: #fff;
-            
+            span{
+                margin: 0 .5vw
+            }
+        }
+        &-content-item{
             span{
                 margin: 0 15px;
             }
