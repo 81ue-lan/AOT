@@ -9,7 +9,6 @@ const sliderList = [
         japaneseName: 'エレン・イェーガー',
         height: '170cm',
         weight: '63kg',
-        birth: '835/3/30',
         image: 'eren.png'
     },
     {
@@ -17,7 +16,6 @@ const sliderList = [
         japaneseName: 'ミカサ・アッカーマン',
         height: '160cm',
         weight: '50kg',
-        birth: '835/2/10',
         image: 'mikasa.png'
     },
     {
@@ -25,7 +23,6 @@ const sliderList = [
         japaneseName: 'コニー・スプリンガー',
         height: '158cm',
         weight: '58kg',
-        birth: '835/5/2',
         image: 'connie.png'
     },
     {
@@ -33,7 +30,6 @@ const sliderList = [
         japaneseName: 'ハンジ・ゾエ',
         height: '170cm',
         weight: '60kg',
-        birth: '9/5',
         image: 'hans.png'
     },
     {
@@ -41,7 +37,6 @@ const sliderList = [
         japaneseName: 'リヴァイ',
         height: '160cm',
         weight: '65kg',
-        birth: '12/25',
         image: 'levi.png'
     },
     {
@@ -49,7 +44,6 @@ const sliderList = [
         japaneseName: 'エルヴィン・スミス',
         height: '188cm',
         weight: '92kg',
-        birth: '10/14',
         image: 'erwin.png'
     },  
     {
@@ -57,7 +51,6 @@ const sliderList = [
         japaneseName: 'サシャ・ブラウス',
         height: '168cm',
         weight: '55kg',
-        birth: '7/26',
         image: 'sasha.png'
     },
     {
@@ -65,7 +58,6 @@ const sliderList = [
         japaneseName: 'ジャン・キルシュタイン',
         height: '175cm',
         weight: '65kg',
-        birth: '835/4/7',
         image: 'jean.png'
     },
     {
@@ -73,7 +65,6 @@ const sliderList = [
         japaneseName: 'アルミン・アルレルト',
         height: '163cm',
         weight: '55kg',
-        birth: '835/11/3',
         image: 'armin.png'
     },
 ]
@@ -82,7 +73,6 @@ const slideItemWidth = ref(0)
 const offset = ref(0)
 const offsetY = ref(0)
 const slideList = ref('')
-const slideItem = ref('')
 const isUpdate = ref(false)
 const clickWait = ref(false)
 const timer = ref({})
@@ -150,8 +140,6 @@ const moveSlide = (direction) => {
     isUpdate.value = true
 
     animate()
-    
-    // slideContent.value.style.transform = `translateY(${ offset.value }px)`
     slideList.value.style.transform = `translateX(${ offset.value }px)`
     slideList.value.style.transition = 'all .8s ease-in-out'
 }
@@ -293,27 +281,16 @@ onMounted(() => {
                 :alt="slideItem.name"
                 draggable="false"
                 >
-                <div class="slider-content-list"
-                v-show="slideIndex === activeIndex"
-                >
-                    <span>birth | {{ slideItem.birth }}</span>
-                    <span>height | {{ slideItem.height }}</span>
-                    <span>weight | {{ slideItem.weight }}</span>
-                </div>
+                <Transition name="fade">
+                    <div class="slider-content-list"
+                    v-show="slideIndex === activeIndex ||  slideIndex === activeIndex + 9 ||  slideIndex === activeIndex - 9"
+                    >
+                        <span>height | {{ slideItem.height }}</span>
+                        <span>weight | {{ slideItem.weight }}</span>
+                    </div>
+                 </Transition>
             </li>
         </ul>
-        <!-- <ul class="slider-content-list">
-            <li 
-            v-for="(content,contentIndex) in cloneSlide"
-            :key="contentIndex"
-            ref="slideContent"
-            class="slider-content-item"
-            >
-                <span>birth | {{ content.birth }}</span>
-                <span>height | {{ content.height }}</span>
-                <span>weight | {{ content.weight }}</span>
-            </li>
-        </ul> -->
         <div class="slider-btns">
             <button class="prev-btn" @click="moveSlide(1)"></button>
             <button class="next-btn" @click="moveSlide(-1)"></button>
@@ -322,6 +299,16 @@ onMounted(() => {
   
 </template>
 <style lang="scss">
+    .fade-enter-active,
+    .fade-leave-active {
+        transition: opacity .5s ease-in-out;
+        transition-duration: 1.5s;
+    }
+
+    .fade-enter-from,
+    .fade-leave-to {
+        opacity: 0;
+    }
     .slider{
         position: relative;
         overflow: hidden;
@@ -372,18 +359,12 @@ onMounted(() => {
             }
         }
         &-content-list{
-            position: relative;
-            // height: 40px;
-            font-size: 1.5vw;
-            text-align: center;
+            width: fit-content;
+            margin: auto;
+            font-size: 1vw;
             color: #fff;
             span{
-                margin: 0 .5vw
-            }
-        }
-        &-content-item{
-            span{
-                margin: 0 15px;
+                margin: 0 .5rem;
             }
         }
         &-btns{
@@ -427,6 +408,11 @@ onMounted(() => {
                     background-image: url('../assets/images/arrow_pre.png');
                 }
             }
+        }
+    }
+    @media (max-width: 768px){
+        .slider{
+
         }
     }
 </style>
