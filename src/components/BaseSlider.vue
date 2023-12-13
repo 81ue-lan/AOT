@@ -9,7 +9,6 @@ const sliderList = [
         japaneseName: 'エレン・イェーガー',
         height: '170cm',
         weight: '63kg',
-        birth: '835/3/30',
         image: 'eren.png'
     },
     {
@@ -17,7 +16,6 @@ const sliderList = [
         japaneseName: 'ミカサ・アッカーマン',
         height: '160cm',
         weight: '50kg',
-        birth: '835/2/10',
         image: 'mikasa.png'
     },
     {
@@ -25,7 +23,6 @@ const sliderList = [
         japaneseName: 'コニー・スプリンガー',
         height: '158cm',
         weight: '58kg',
-        birth: '835/5/2',
         image: 'connie.png'
     },
     {
@@ -33,7 +30,6 @@ const sliderList = [
         japaneseName: 'ハンジ・ゾエ',
         height: '170cm',
         weight: '60kg',
-        birth: '9/5',
         image: 'hans.png'
     },
     {
@@ -41,7 +37,6 @@ const sliderList = [
         japaneseName: 'リヴァイ',
         height: '160cm',
         weight: '65kg',
-        birth: '12/25',
         image: 'levi.png'
     },
     {
@@ -49,7 +44,6 @@ const sliderList = [
         japaneseName: 'エルヴィン・スミス',
         height: '188cm',
         weight: '92kg',
-        birth: '10/14',
         image: 'erwin.png'
     },  
     {
@@ -57,7 +51,6 @@ const sliderList = [
         japaneseName: 'サシャ・ブラウス',
         height: '168cm',
         weight: '55kg',
-        birth: '7/26',
         image: 'sasha.png'
     },
     {
@@ -65,7 +58,6 @@ const sliderList = [
         japaneseName: 'ジャン・キルシュタイン',
         height: '175cm',
         weight: '65kg',
-        birth: '835/4/7',
         image: 'jean.png'
     },
     {
@@ -73,7 +65,6 @@ const sliderList = [
         japaneseName: 'アルミン・アルレルト',
         height: '163cm',
         weight: '55kg',
-        birth: '835/11/3',
         image: 'armin.png'
     },
 ]
@@ -82,10 +73,8 @@ const slideItemWidth = ref(0)
 const offset = ref(0)
 const offsetY = ref(0)
 const slideList = ref('')
-const slideItem = ref('')
 const isUpdate = ref(false)
-const clickWait = ref(false)
-const timer = ref({})
+const isTransitionEnd = ref(true)
 const { width: screenWidth } = useWindowSize()
 
 const cloneSlide = computed(() => {
@@ -137,26 +126,24 @@ const init = () => {
     calculateOffset()
 }
 const moveSlide = (direction) => {
-    if(clickWait.value){
+    if(!isTransitionEnd.value){
         return
     }
-    stopTime()
+    isTransitionEnd.value = false
     stopAutoPlay()
-    clickWait.value = true
     activeIndex.value += direction > 0 ? 1 : -1
-    setTime()
     startAutoPlay()
     offset.value += -direction * slideItemWidth.value
     isUpdate.value = true
 
     animate()
-    
-    // slideContent.value.style.transform = `translateY(${ offset.value }px)`
     slideList.value.style.transform = `translateX(${ offset.value }px)`
-    slideList.value.style.transition = 'all .8s ease-in-out'
 }
 const updateSliderPosition = () => {
-    slideList.value.style.transition = 'none'
+    if(isTransitionEnd.value){
+        return
+    }
+    isTransitionEnd.value = true
     
     if (activeIndex.value > sliderList.length + 2) {
         activeIndex.value = 3
@@ -176,16 +163,6 @@ const startAutoPlay = () => {
 }
 const stopAutoPlay = () => {
   clearInterval(autoPlay)
-}
-
-//阻擋連續點擊
-const setTime = () => {
-  timer.value = setTimeout(() => {
-    clickWait.value = false
-  }, 1000)
-}
-const stopTime = () =>  {
-  clearInterval(timer.value)
 }
 
 // 文字動畫
@@ -247,8 +224,6 @@ watch(screenWidth, () => {
 
 onMounted(() => {
     init()
-    text1.value = document.querySelector("#text1")
-    text2.value = document.querySelector("#text2")
     animate()
     startAutoPlay()
 })
@@ -256,16 +231,16 @@ onMounted(() => {
 <template>
     <div class="slider">
         <div class="slider-name-wrap">
-            <h3 class="slider-name" id="text1">
+            <h3 class="slider-name" ref="text1">
                 <span>{{ preContent.name }}</span>
                 <span>{{ preContent.japaneseName }}</span>
             </h3>
-            <h3 class="slider-name" id="text2">
+            <h3 class="slider-name" ref="text2">
                 <span>{{ activeContent.name }}</span>
                 <span>{{ activeContent.japaneseName }}</span>
             </h3>
         </div>
-        <svg id="filters">
+        <svg id="filter">
             <defs>
                 <filter id="threshold">
                     <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0
@@ -278,6 +253,7 @@ onMounted(() => {
         <ul 
          class="slider-list" 
          ref="slideList"
+         :style="{'transition': isTransitionEnd ? 'none' : 'all .8s ease-in-out'}"
          @transitionend="updateSliderPosition"
          @mouseenter="stopAutoPlay"
          @mouseleave="startAutoPlay"
@@ -293,35 +269,34 @@ onMounted(() => {
                 :alt="slideItem.name"
                 draggable="false"
                 >
-                <div class="slider-content-list"
-                v-show="slideIndex === activeIndex"
-                >
-                    <span>birth | {{ slideItem.birth }}</span>
-                    <span>height | {{ slideItem.height }}</span>
-                    <span>weight | {{ slideItem.weight }}</span>
-                </div>
+                <Transition name="fade">
+                    <div class="slider-content-list"
+                    v-show="slideIndex === activeIndex ||  slideIndex === activeIndex + 9 ||  slideIndex === activeIndex - 9"
+                    >
+                        <span>height | {{ slideItem.height }}</span>
+                        <span>weight | {{ slideItem.weight }}</span>
+                    </div>
+                 </Transition>
             </li>
         </ul>
-        <!-- <ul class="slider-content-list">
-            <li 
-            v-for="(content,contentIndex) in cloneSlide"
-            :key="contentIndex"
-            ref="slideContent"
-            class="slider-content-item"
-            >
-                <span>birth | {{ content.birth }}</span>
-                <span>height | {{ content.height }}</span>
-                <span>weight | {{ content.weight }}</span>
-            </li>
-        </ul> -->
         <div class="slider-btns">
-            <button class="prev-btn" @click="moveSlide(1)"></button>
-            <button class="next-btn" @click="moveSlide(-1)"></button>
+            <button class="prev-btn" @click="moveSlide(-1)"></button>
+            <button class="next-btn" @click="moveSlide(1)"></button>
         </div>
     </div>
   
 </template>
 <style lang="scss">
+    .fade-enter-active,
+    .fade-leave-active {
+        transition: opacity .5s ease-in-out;
+        transition-duration: 1.5s;
+    }
+
+    .fade-enter-from,
+    .fade-leave-to {
+        opacity: 0;
+    }
     .slider{
         position: relative;
         overflow: hidden;
@@ -339,10 +314,10 @@ onMounted(() => {
             span{
                 display: block;
                 &:first-child{
-                    font-size: 10vw;
+                    font-size: 130px;
                 }
                 &:last-child{
-                    font-size: 7vw;
+                    font-size: 80px;
                 }
             }
         }
@@ -372,18 +347,12 @@ onMounted(() => {
             }
         }
         &-content-list{
-            position: relative;
-            // height: 40px;
-            font-size: 1.5vw;
-            text-align: center;
+            width: fit-content;
+            margin: auto;
+            font-size: 1vw;
             color: #fff;
             span{
-                margin: 0 .5vw
-            }
-        }
-        &-content-item{
-            span{
-                margin: 0 15px;
+                margin: 0 .5rem;
             }
         }
         &-btns{
@@ -409,8 +378,7 @@ onMounted(() => {
                     position: absolute;
                     inset: 0;
                     margin: auto;
-                    width: 52px;
-                    height: 72px;
+                    width: 100%;
                     background-repeat: no-repeat;
                     background-size: contain;
                     background-position: center;
@@ -425,6 +393,28 @@ onMounted(() => {
             .prev-btn{
                 &::before{
                     background-image: url('../assets/images/arrow_pre.png');
+                }
+            }
+        }
+    }
+    @media (max-width: 768px){
+        .slider{
+            &-name{
+                span{
+                &:first-child{
+                    font-size: 100px;
+                }
+                &:last-child{
+                    font-size: 80px;
+                }
+            }
+            }
+            &-list{
+            }
+            &-btns{
+                .next-btn,
+                .prev-btn{
+                    width: 20%;
                 }
             }
         }
