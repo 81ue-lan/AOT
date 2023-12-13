@@ -419,4 +419,9 @@ onMounted(() => {
             }
         }
     }
+    @media (max-width: 768px){
+        .slider{
+
+        }
+    }
 </style>
