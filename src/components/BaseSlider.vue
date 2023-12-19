@@ -73,7 +73,6 @@ const slideItemWidth = ref(0)
 const offset = ref(0)
 const offsetY = ref(0)
 const slideList = ref('')
-const isUpdate = ref(false)
 const isTransitionEnd = ref(true)
 const { width: screenWidth } = useWindowSize()
 
@@ -101,7 +100,6 @@ const calculateOffset = () => {
   )
   return slideList.value.style.transform = `translateX(${ offset.value }px)`
 }
-
 const filterData = (index) => {
     const data = Object.keys(index)
             .filter(key => key !== 'image')
@@ -134,7 +132,6 @@ const moveSlide = (direction) => {
     activeIndex.value += direction > 0 ? 1 : -1
     startAutoPlay()
     offset.value += -direction * slideItemWidth.value
-    isUpdate.value = true
 
     animate()
     slideList.value.style.transform = `translateX(${ offset.value }px)`
@@ -144,14 +141,13 @@ const updateSliderPosition = () => {
         return
     }
     isTransitionEnd.value = true
-    
+
     if (activeIndex.value > sliderList.length + 2) {
         activeIndex.value = 3
     }
     if (activeIndex.value < 3) {
         activeIndex.value = sliderList.length + 2
     }
-    isUpdate.value = false
     calculateOffset()
 }
 
@@ -209,9 +205,9 @@ const animate = () => {
     time = newTime;
 
     cooldown -= dt;
-      if (cooldown <= 0 && isUpdate.value) {
+      if (cooldown <= 0 && !isTransitionEnd.value) {
         doMorph()
-      } else if(!isUpdate.value){
+      } else if(isTransitionEnd.value){
         doCooldown()
       }
 }
@@ -246,7 +242,7 @@ onMounted(() => {
                     <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0
                                             0 1 0 0 0
                                             0 0 1 0 0
-                                            0 0 0 255 -140" />
+                                            0 0 0 255 -120" />
                 </filter>
             </defs>
         </svg>
@@ -261,6 +257,7 @@ onMounted(() => {
             <li 
             v-for="(slideItem,slideIndex) in cloneSlide" 
             :key="slideIndex"
+            :style="{'transition': isTransitionEnd ? 'none' :  'all 1s ease'}"
             class="slider-item"
             :class="{ active: slideIndex === activeIndex ||  slideIndex === activeIndex + 9 ||  slideIndex === activeIndex - 9 }"
             >
@@ -297,6 +294,7 @@ onMounted(() => {
     .fade-leave-to {
         opacity: 0;
     }
+
     .slider{
         position: relative;
         overflow: hidden;
@@ -323,21 +321,20 @@ onMounted(() => {
         }
         &-list{
             display: flex;
-            padding:10% 0 0;
+            padding:5% 0 0;
             list-style: none;
         }
         &-item{
             flex: calc(100% / 3) 0 0;
             max-width: 407px;
             max-height: 750px;
+            min-width: 200px;
             margin: 0 5%;
             opacity: .5;
             transform-origin: bottom center;
-            transition: all 1s ease;
             &.active{
                 opacity: 1;
                 transform: scale(1.3);
-                transition: all 1s ease;
                 transition-delay: .2s;
             }
             
@@ -349,7 +346,7 @@ onMounted(() => {
         &-content-list{
             width: fit-content;
             margin: auto;
-            font-size: 1vw;
+            font-size: 18px;
             color: #fff;
             span{
                 margin: 0 .5rem;
@@ -402,26 +399,40 @@ onMounted(() => {
             &-name{
                 span{
                 &:first-child{
-                    font-size: 100px;
-                }
-                &:last-child{
                     font-size: 80px;
                 }
+                &:last-child{
+                    font-size: 50px;
+                }
             }
             }
-            &-list{
+            &-content-list{
+                font-size: 14px;
+                span{
+                    display: block;
+                }
             }
             &-btns{
+                width: 60%;
                 .next-btn,
                 .prev-btn{
-                    width: 20%;
+                    width: 18%;
                 }
             }
         }
     }
-    @media (max-width: 768px){
+    @media (max-width: 480px){
         .slider{
-
+            &-name{
+                span{
+                &:first-child{
+                    font-size: 60px;
+                }
+                &:last-child{
+                    font-size: 40px;
+                }
+            }
+          }
         }
     }
 </style>
